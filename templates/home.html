@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-4">Home</h1>
+
+        <label for="planDate">Date:</label>
+        <input type="date" id="planDate" class="form-control mb-3">
+
+        <div id="mealPlan">
+            <h3>Breakfast</h3>
+            <ul id="breakfastList"></ul>
+
+            <h3>Lunch</h3>
+            <ul id="lunchList"></ul>
+
+            <h3>Dinner</h3>
+            <ul id="dinnerList"></ul>
+
+            <h3>Cracks</h3>
+            <ul id="snacksList"></ul>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+    let today = new Date().toISOString().split('T')[0];
+    let dateInput = document.getElementById("planDate");
+
+    dateInput.value = today;
+    dateInput.dispatchEvent(new Event("change")); 
+    });
+
+    document.getElementById("planDate").addEventListener("change", function() {
+    let selectedDate = this.value;
+    fetch(`/get-meal-plan?date=${selectedDate}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log("Полученные данные:", data);
+
+            document.getElementById("breakfastList").innerHTML = data.breakfast.map(r => 
+                `<li><a href="/recipe/${r.id}">${r.name}</a></li>`).join("");
+            document.getElementById("lunchList").innerHTML = data.lunch.map(r => 
+                `<li><a href="/recipe/${r.id}">${r.name}</a></li>`).join("");
+            document.getElementById("dinnerList").innerHTML = data.dinner.map(r => 
+                `<li><a href="/recipe/${r.id}">${r.name}</a></li>`).join("");
+            document.getElementById("snacksList").innerHTML = data.snacks.map(r => 
+                `<li><a href="/recipe/${r.id}">${r.name}</a></li>`).join("");
+        });
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My products</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-4">My products</h1>
+
+        <form id="productForm" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="photo" class="form-label">Photo</label>
+                <input type="file" class="form-control" id="photo" name="photo" accept="image/*" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="number" class="form-label">Number</label>
+                <input type="text" class="form-control" id="number" name="number" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Add</button>
+        </form>
+
+        <hr>
+
+        <h2>Uploaded</h2>
+
+        <form id="searchForm">
+            <div class="row" id="productList">
+                {{range .products}}
+                <div class="col-md-4">
+                    <div class="card mt-3">
+                        <img src="{{.Photo}}" class="card-img-top" alt="{{.Name}}">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <input type="checkbox" name="products" value="{{.Name}}"> {{.Name}}
+                            </h5>
+                            <p class="card-text">Number: {{.Number}}</p>
+                        </div>
+                    </div>
+                </div>
+                {{end}}
+            </div>
+            <button type="submit" class="btn btn-primary mt-3">Найти рецепты</button>
+        </form>
+
+        <hr>
+
+        <h2>Рецепты</h2>
+        <div id="recipeResults"></div>
+    </div>
+
+    <script>
+        document.getElementById("productForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            let formData = new FormData(this);
+
+            fetch("/upload-product", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) {
+                    location.reload();
+                }
+            });
+        });
+
+        document.getElementById("searchForm").addEventListener("submit", function(event) {
+            event.preventDefault(); 
+
+            let selectedProducts = [];
+            document.querySelectorAll("input[name='products']:checked").forEach(checkbox => {
+                selectedProducts.push(checkbox.value);
+            });
+
+            if (selectedProducts.length === 0) {
+                alert("Выберите хотя бы один продукт!");
+                return;
+            }
+
+            fetch("/search-recipes", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ products: selectedProducts })
+            })
+            .then(response => response.json())
+            .then(data => {
+                let resultsContainer = document.getElementById("recipeResults");
+                resultsContainer.innerHTML = ""; 
+
+                if (data.length === 0) {
+                    resultsContainer.innerHTML = "<p>Рецептов не найдено</p>";
+                    return;
+                }
+
+                data.forEach(recipe => {
+                    let recipeCard = `
+                        <div class="card mt-3">
+                            <img src="${recipe.image_url}" class="card-img-top" alt="${recipe.name}">
+                            <div class="card-body">
+                                <h5 class="card-title">${recipe.name}</h5>
+                                <a href="/recipe/${recipe.id}" class="btn btn-primary">Подробнее</a>
+                            </div>
+                        </div>
+                    `;
+                    resultsContainer.innerHTML += recipeCard;
+                });
+            });
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

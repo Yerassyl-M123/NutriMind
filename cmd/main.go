@@ -22,6 +22,18 @@ func main() {
 	server.Use(middleware.SessionTimeout())
 
 	server.LoadHTMLGlob("templates/*")
+	server.Static("/uploads", "./uploads")
+
+	server.GET("/recipes", middleware.AuthRequired(handlers.GetRecipes))
+	server.GET("/recipe/:id", middleware.AuthRequired(handlers.GetRecipeDetails))
+
+	server.GET("/", middleware.AuthRequired(handlers.GetHomePage))
+	server.POST("/add-to-plan", middleware.AuthRequired(handlers.AddToMealPlan))
+	server.GET("/get-meal-plan", middleware.AuthRequired(handlers.GetMealPlan))
+
+	server.GET("/my-products", middleware.AuthRequired(handlers.GetMyProducts))
+	server.POST("/upload-product", middleware.AuthRequired(handlers.UploadProduct))
+	server.POST("/search-recipes", middleware.AuthRequired(handlers.SearchRecipes))
 
 	server.GET("/signUpPage", handlers.SignUpPage)
 	server.POST("/signup", handlers.SignUp)
